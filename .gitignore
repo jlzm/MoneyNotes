@@ -1,0 +1,124 @@
+# ================================
+# Rust / 后端
+# ================================
+# 编译产物
+/server/target/
+target/
+
+# Cargo 锁文件（库项目可忽略，应用项目建议保留）
+# Cargo.lock
+
+# 调试文件
+*.pdb
+
+# ================================
+# Node.js / 前端
+# ================================
+# 依赖目录
+node_modules/
+.pnpm-store/
+
+# 构建产物
+/client/packages/app/dist/
+/client/packages/app/unpackage/
+dist/
+build/
+
+# 缓存
+.cache/
+.parcel-cache/
+.vite/
+
+# ================================
+# UniApp / 小程序
+# ================================
+/client/packages/app/unpackage/
+*.wxapkg
+
+# ================================
+# IDE / 编辑器
+# ================================
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# JetBrains (WebStorm, RustRover, IntelliJ)
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Vim
+*.swp
+*.swo
+*~
+
+# ================================
+# 操作系统
+# ================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# ================================
+# 环境变量 / 敏感配置
+# ================================
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+*.local
+
+# 配置文件（包含敏感信息）
+/server/config/local.toml
+/server/config/production.toml
+secrets/
+*.key
+*.pem
+
+# ================================
+# 日志
+# ================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ================================
+# 测试 / 覆盖率
+# ================================
+coverage/
+.nyc_output/
+*.lcov
+
+# ================================
+# 临时文件
+# ================================
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+
+# ================================
+# 数据库
+# ================================
+*.db
+*.sqlite
+*.sqlite3

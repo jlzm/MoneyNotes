@@ -1,0 +1,13 @@
+{
+  "name": "@money-notes/shared",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  }
+}

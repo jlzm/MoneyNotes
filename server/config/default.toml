@@ -1,0 +1,13 @@
+[server]
+host = "127.0.0.1"
+port = 3000
+
+[database]
+driver = "mysql"
+url = "mysql://root:password@localhost/money_notes"
+max_connections = 10
+
+[jwt]
+secret = "your-super-secret-key-change-in-production"
+access_token_expires = 3600
+refresh_token_expires = 604800
