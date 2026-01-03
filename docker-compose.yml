@@ -56,11 +56,12 @@ services:
     restart: unless-stopped
     environment:
       - RUST_LOG=${RUST_LOG:-info}
-      - APP_ENV=production
-      - DATABASE_URL=mysql://${MYSQL_USER:-money_notes}:${MYSQL_PASSWORD:-money_notes123}@mysql:3306/${MYSQL_DATABASE:-money_notes}
-      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
-      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-3600}
-      - JWT_REFRESH_EXPIRES_IN=${JWT_REFRESH_EXPIRES_IN:-604800}
+      - RUN_MODE=production
+      - APP__DATABASE__URL=mysql://${MYSQL_USER:-money_notes}:${MYSQL_PASSWORD:-money_notes123}@mysql:3306/${MYSQL_DATABASE:-money_notes}
+      - APP__JWT__SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      - APP__JWT__ACCESS_TOKEN_EXPIRES=${JWT_EXPIRES_IN:-3600}
+      - APP__JWT__REFRESH_TOKEN_EXPIRES=${JWT_REFRESH_EXPIRES_IN:-604800}
+      - APP__SERVER__HOST=0.0.0.0
     ports:
       - "${SERVER_PORT:-3000}:3000"
     depends_on:
@@ -84,9 +85,7 @@ services:
   # 前端服务 (Nginx)
   # ================================
   client:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
+    image: money-notes-web:latest
     container_name: money-notes-client
     restart: unless-stopped
     ports:
