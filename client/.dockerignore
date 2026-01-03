@@ -1,0 +1,20 @@
+# 依赖
+node_modules/
+.pnpm-store/
+
+# 构建产物（保留用于多阶段构建）
+# packages/app/dist/
+
+# IDE
+.idea/
+.vscode/
+
+# 环境变量
+.env
+.env.*
+
+# 日志
+*.log
+
+# UniApp 临时文件
+packages/app/unpackage/
