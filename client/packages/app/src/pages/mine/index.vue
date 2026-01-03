@@ -22,7 +22,7 @@
         <text class="menu-text">我的账本</text>
         <text class="menu-arrow">›</text>
       </view>
-      <view class="menu-item" @click="navigateTo('/pages/category/manage')">
+      <view class="menu-item" @click="navigateTo('/pages/category/index')">
         <text class="menu-icon">🏷️</text>
         <text class="menu-text">分类管理</text>
         <text class="menu-arrow">›</text>

@@ -38,6 +38,45 @@
           <view class="category-icon">{{ cat.icon }}</view>
           <text class="category-name">{{ cat.name }}</text>
         </view>
+        <!-- 添加分类按钮 -->
+        <view class="category-item" @click="showAddModal = true">
+          <view class="category-icon add-icon">+</view>
+          <text class="category-name">添加</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 添加分类弹窗 -->
+    <view class="modal-overlay" v-if="showAddModal" @click="showAddModal = false">
+      <view class="modal-content" @click.stop>
+        <view class="modal-header">
+          <text class="modal-title">添加{{ billType === 'expense' ? '支出' : '收入' }}分类</text>
+          <text class="modal-close" @click="showAddModal = false">×</text>
+        </view>
+        <view class="modal-body">
+          <input
+            class="category-name-input"
+            type="text"
+            placeholder="分类名称"
+            v-model="newCategoryName"
+          />
+          <view class="icon-picker-title">选择图标</view>
+          <view class="icon-picker-grid">
+            <view
+              class="icon-picker-item"
+              :class="{ active: newCategoryIcon === icon }"
+              v-for="icon in availableIcons"
+              :key="icon"
+              @click="newCategoryIcon = icon"
+            >
+              {{ categoryStore.getIconEmoji(icon) }}
+            </view>
+          </view>
+        </view>
+        <view class="modal-footer">
+          <button class="btn-cancel" @click="showAddModal = false">取消</button>
+          <button class="btn-confirm" @click="addNewCategory">确定</button>
+        </view>
       </view>
     </view>
 
@@ -91,12 +130,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useBillStore } from '@/store/bill'
 import { useUserStore } from '@/store/user'
+import { useCategoryStore, availableIcons } from '@/store/category'
 
 const billStore = useBillStore()
 const userStore = useUserStore()
+const categoryStore = useCategoryStore()
 
 const billType = ref<'income' | 'expense'>('expense')
 const amount = ref('')
@@ -104,30 +145,29 @@ const selectedCategory = ref('')
 const note = ref('')
 const billDate = ref(new Date().toISOString().split('T')[0])
 
-const expenseCategories = [
-  { id: '1', name: '餐饮', icon: '🍔' },
-  { id: '2', name: '交通', icon: '🚗' },
-  { id: '3', name: '购物', icon: '🛒' },
-  { id: '4', name: '娱乐', icon: '🎮' },
-  { id: '5', name: '居住', icon: '🏠' },
-  { id: '6', name: '医疗', icon: '💊' },
-  { id: '7', name: '教育', icon: '📚' },
-  { id: '8', name: '通讯', icon: '📱' },
-  { id: '9', name: '其他', icon: '📋' },
-]
+// 添加分类弹窗相关
+const showAddModal = ref(false)
+const newCategoryName = ref('')
+const newCategoryIcon = ref('other')
 
-const incomeCategories = [
-  { id: '10', name: '工资', icon: '💰' },
-  { id: '11', name: '奖金', icon: '🎁' },
-  { id: '12', name: '投资', icon: '📈' },
-  { id: '13', name: '兼职', icon: '💼' },
-  { id: '14', name: '红包', icon: '🧧' },
-  { id: '15', name: '其他', icon: '📋' },
-]
+// 使用 store 中的分类数据
+const currentCategories = computed(() => {
+  const categories = billType.value === 'expense'
+    ? categoryStore.expenseCategories
+    : categoryStore.incomeCategories
 
-const currentCategories = computed(() =>
-  billType.value === 'expense' ? expenseCategories : incomeCategories
-)
+  // 转换为模板需要的格式
+  return categories.map(cat => ({
+    id: cat.id,
+    name: cat.name,
+    icon: categoryStore.getIconEmoji(cat.icon)
+  }))
+})
+
+// 初始化分类数据
+onMounted(() => {
+  categoryStore.init()
+})
 
 function inputNumber(key: string) {
   if (key === 'backspace') {
@@ -201,6 +241,31 @@ function resetForm() {
   selectedCategory.value = ''
   note.value = ''
   billDate.value = new Date().toISOString().split('T')[0]
+}
+
+// 添加新分类
+function addNewCategory() {
+  if (!newCategoryName.value.trim()) {
+    uni.showToast({ title: '请输入分类名称', icon: 'none' })
+    return
+  }
+
+  const newCat = categoryStore.addCategory({
+    name: newCategoryName.value.trim(),
+    icon: newCategoryIcon.value,
+    type: billType.value,
+    sortOrder: 50
+  })
+
+  // 自动选中新添加的分类
+  selectedCategory.value = newCat.id
+
+  // 重置并关闭弹窗
+  newCategoryName.value = ''
+  newCategoryIcon.value = 'other'
+  showAddModal.value = false
+
+  uni.showToast({ title: '添加成功', icon: 'success' })
 }
 </script>
 
@@ -358,5 +423,120 @@ function resetForm() {
   flex: 2;
   background: #667eea;
   color: #fff;
+}
+
+/* 添加分类按钮 */
+.add-icon {
+  background: #e8e8e8;
+  color: #999;
+  font-size: 40rpx;
+  font-weight: 300;
+}
+
+/* 弹窗样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal-content {
+  width: 85%;
+  max-width: 600rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #eee;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.modal-close {
+  font-size: 48rpx;
+  color: #999;
+  line-height: 1;
+}
+
+.modal-body {
+  padding: 30rpx;
+}
+
+.category-name-input {
+  width: 100%;
+  padding: 24rpx;
+  background: #f5f5f5;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+  margin-bottom: 30rpx;
+}
+
+.icon-picker-title {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 20rpx;
+}
+
+.icon-picker-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.icon-picker-item {
+  width: 80rpx;
+  height: 80rpx;
+  background: #f5f5f5;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+}
+
+.icon-picker-item.active {
+  background: #667eea;
+}
+
+.modal-footer {
+  display: flex;
+  border-top: 1rpx solid #eee;
+}
+
+.btn-cancel,
+.btn-confirm {
+  flex: 1;
+  padding: 28rpx;
+  font-size: 30rpx;
+  border: none;
+  background: #fff;
+  border-radius: 0;
+}
+
+.btn-cancel {
+  color: #666;
+  border-right: 1rpx solid #eee;
+}
+
+.btn-confirm {
+  color: #667eea;
+  font-weight: 500;
 }
 </style>
