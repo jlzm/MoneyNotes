@@ -16,8 +16,10 @@ interface ApiResponse<T = any> {
   data?: T
 }
 
+import { API_BASE_URL } from './config'
+
 const defaultConfig: RequestConfig = {
-  baseURL: '/api/v1',
+  baseURL: API_BASE_URL,
   timeout: 30000,
 }
 

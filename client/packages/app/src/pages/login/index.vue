@@ -1,8 +1,8 @@
 <template>
   <view class="container">
     <view class="header">
-      <text class="title">登录</text>
-      <text class="subtitle">登录后可同步数据、使用群组功能</text>
+      <text class="title">{{ isLogin ? '登录' : '注册' }}</text>
+      <text class="subtitle">{{ isLogin ? '登录后可同步数据、使用群组功能' : '创建账号开始记账' }}</text>
     </view>
 
     <view class="form">
@@ -23,7 +23,18 @@
         />
       </view>
 
-      <button class="btn-submit" @click="handleLogin">登录</button>
+      <view class="form-item" v-if="!isLogin">
+        <input
+          class="input"
+          type="text"
+          placeholder="昵称"
+          v-model="nickname"
+        />
+      </view>
+
+      <button class="btn-submit" :disabled="loading" @click="handleLogin">
+        {{ loading ? '处理中...' : (isLogin ? '登录' : '注册') }}
+      </button>
 
       <view class="divider">
         <text class="divider-text">或</text>
@@ -43,6 +54,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useUserStore } from '@/store/user'
+import { login, register } from '@money-notes/api'
 
 const userStore = useUserStore()
 
@@ -50,6 +62,7 @@ const isLogin = ref(true)
 const email = ref('')
 const password = ref('')
 const nickname = ref('')
+const loading = ref(false)
 
 function toggleMode() {
   isLogin.value = !isLogin.value
@@ -61,22 +74,40 @@ async function handleLogin() {
     return
   }
 
-  // TODO: 调用API登录/注册
-  // 模拟登录成功
-  userStore.setUser(
-    {
-      id: '1',
-      email: email.value,
-      nickname: nickname.value || email.value.split('@')[0]
-    },
-    {
-      accessToken: 'mock_access_token',
-      refreshToken: 'mock_refresh_token'
-    }
-  )
+  if (!isLogin.value && !nickname.value) {
+    uni.showToast({ title: '请填写昵称', icon: 'none' })
+    return
+  }
 
-  uni.showToast({ title: isLogin.value ? '登录成功' : '注册成功', icon: 'success' })
-  uni.switchTab({ url: '/pages/index/index' })
+  if (loading.value) return
+  loading.value = true
+
+  try {
+    const response = isLogin.value
+      ? await login({ email: email.value, password: password.value })
+      : await register({ email: email.value, password: password.value, nickname: nickname.value })
+
+    if (response.data) {
+      userStore.setUser(
+        {
+          id: response.data.user.id,
+          email: response.data.user.email,
+          nickname: response.data.user.nickname
+        },
+        {
+          accessToken: response.data.accessToken,
+          refreshToken: response.data.refreshToken
+        }
+      )
+
+      uni.showToast({ title: isLogin.value ? '登录成功' : '注册成功', icon: 'success' })
+      uni.switchTab({ url: '/pages/index/index' })
+    }
+  } catch (error: any) {
+    uni.showToast({ title: error.message || '操作失败', icon: 'none' })
+  } finally {
+    loading.value = false
+  }
 }
 
 function continueAsGuest() {

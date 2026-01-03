@@ -133,10 +133,13 @@
 import { ref, computed, onMounted } from 'vue'
 import { useBillStore } from '@/store/bill'
 import { useUserStore } from '@/store/user'
+import { useLedgerStore } from '@/store/ledger'
 import { useCategoryStore, availableIcons } from '@/store/category'
+import { createBill, USE_MOCK } from '@money-notes/api'
 
 const billStore = useBillStore()
 const userStore = useUserStore()
+const ledgerStore = useLedgerStore()
 const categoryStore = useCategoryStore()
 
 const billType = ref<'income' | 'expense'>('expense')
@@ -192,7 +195,7 @@ function onDateChange(e: any) {
   billDate.value = e.detail.value
 }
 
-function saveBill() {
+async function saveBill() {
   const amountNum = parseFloat(amount.value)
   if (!amountNum || amountNum <= 0) {
     uni.showToast({ title: '请输入金额', icon: 'none' })
@@ -206,8 +209,8 @@ function saveBill() {
 
   const category = currentCategories.value.find(c => c.id === selectedCategory.value)
 
-  // 如果是访客模式，保存到本地
-  if (userStore.isGuest) {
+  // 访客模式或 Mock 模式：保存到本地
+  if (userStore.isGuest || USE_MOCK) {
     billStore.addLocalBill({
       type: billType.value,
       amount: amountNum,
@@ -222,17 +225,32 @@ function saveBill() {
     })
 
     uni.showToast({ title: '保存成功', icon: 'success' })
-
-    // 重置表单
     resetForm()
-
-    // 返回首页
     uni.switchTab({ url: '/pages/index/index' })
   } else {
-    // TODO: 调用API保存到服务器
-    uni.showToast({ title: '保存成功', icon: 'success' })
-    resetForm()
-    uni.switchTab({ url: '/pages/index/index' })
+    // 调用 API 保存到服务器
+    try {
+      const ledgerId = ledgerStore.currentLedgerId
+      if (!ledgerId) {
+        uni.showToast({ title: '请先选择账本', icon: 'none' })
+        return
+      }
+
+      await createBill({
+        ledgerId,
+        categoryId: selectedCategory.value,
+        type: billType.value,
+        amount: amountNum,
+        note: note.value || undefined,
+        billDate: billDate.value
+      })
+
+      uni.showToast({ title: '保存成功', icon: 'success' })
+      resetForm()
+      uni.switchTab({ url: '/pages/index/index' })
+    } catch (error: any) {
+      uni.showToast({ title: error.message || '保存失败', icon: 'none' })
+    }
   }
 }
 

@@ -4,8 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "pnpm --filter @money-notes/app dev",
+    "dev:h5": "pnpm --filter @money-notes/app dev:h5",
+    "dev:mp-weixin": "pnpm --filter @money-notes/app dev:mp-weixin",
     "build": "pnpm --filter @money-notes/app build",
     "build:h5": "pnpm --filter @money-notes/app build:h5",
+    "build:mp-weixin": "pnpm --filter @money-notes/app build:mp-weixin",
     "build:app": "pnpm --filter @money-notes/app build:app",
     "lint": "pnpm -r lint"
   },

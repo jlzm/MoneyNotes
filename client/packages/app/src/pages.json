@@ -41,6 +41,18 @@
       "style": {
         "navigationBarTitleText": "分类管理"
       }
+    },
+    {
+      "path": "pages/ledger/list",
+      "style": {
+        "navigationBarTitleText": "我的账本"
+      }
+    },
+    {
+      "path": "pages/settings/index",
+      "style": {
+        "navigationBarTitleText": "设置"
+      }
     }
   ],
   "globalStyle": {

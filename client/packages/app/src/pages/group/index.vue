@@ -61,16 +61,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/store/user'
+import {
+  getGroups,
+  createGroup as apiCreateGroup,
+  joinGroup as apiJoinGroup,
+  USE_MOCK,
+  type Group
+} from '@money-notes/api'
 
 const userStore = useUserStore()
 
-const groups = ref<any[]>([])
+const groups = ref<Group[]>([])
 const showCreateModal = ref(false)
 const showJoinModal = ref(false)
 const newGroupName = ref('')
 const inviteCode = ref('')
+const loading = ref(false)
 
 function getRoleText(role: string) {
   const roleMap: Record<string, string> = {
@@ -81,7 +89,23 @@ function getRoleText(role: string) {
   return roleMap[role] || '成员'
 }
 
-function createGroup() {
+async function fetchGroups() {
+  if (userStore.isGuest || USE_MOCK) return
+
+  loading.value = true
+  try {
+    const response = await getGroups()
+    if (response.data) {
+      groups.value = response.data.items
+    }
+  } catch (error) {
+    console.error('Failed to fetch groups:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+async function createGroup() {
   if (!newGroupName.value.trim()) {
     uni.showToast({ title: '请输入群组名称', icon: 'none' })
     return
@@ -92,13 +116,25 @@ function createGroup() {
     return
   }
 
-  // TODO: 调用API创建群组
-  uni.showToast({ title: '创建成功', icon: 'success' })
-  showCreateModal.value = false
-  newGroupName.value = ''
+  if (USE_MOCK) {
+    uni.showToast({ title: '创建成功（Mock）', icon: 'success' })
+    showCreateModal.value = false
+    newGroupName.value = ''
+    return
+  }
+
+  try {
+    await apiCreateGroup({ name: newGroupName.value.trim() })
+    uni.showToast({ title: '创建成功', icon: 'success' })
+    showCreateModal.value = false
+    newGroupName.value = ''
+    fetchGroups()
+  } catch (error: any) {
+    uni.showToast({ title: error.message || '创建失败', icon: 'none' })
+  }
 }
 
-function joinGroup() {
+async function joinGroup() {
   if (!inviteCode.value.trim()) {
     uni.showToast({ title: '请输入邀请码', icon: 'none' })
     return
@@ -109,11 +145,27 @@ function joinGroup() {
     return
   }
 
-  // TODO: 调用API加入群组
-  uni.showToast({ title: '加入成功', icon: 'success' })
-  showJoinModal.value = false
-  inviteCode.value = ''
+  if (USE_MOCK) {
+    uni.showToast({ title: '加入成功（Mock）', icon: 'success' })
+    showJoinModal.value = false
+    inviteCode.value = ''
+    return
+  }
+
+  try {
+    await apiJoinGroup(inviteCode.value.trim())
+    uni.showToast({ title: '加入成功', icon: 'success' })
+    showJoinModal.value = false
+    inviteCode.value = ''
+    fetchGroups()
+  } catch (error: any) {
+    uni.showToast({ title: error.message || '加入失败', icon: 'none' })
+  }
 }
+
+onMounted(() => {
+  fetchGroups()
+})
 </script>
 
 <style scoped>
